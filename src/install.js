@@ -1,8 +1,8 @@
+const childProcess = require('child_process');
 const c = require('chalk');
 const _ = require('lodash/fp');
 const ora = require('ora');
 const pMap = require('p-map');
-const shelljs = require('shelljs');
 const inquirer = require('inquirer');
 const readPkgUp = require('read-pkg-up');
 const {fetchPackageStats, fetchPackageJsonStats} = require('./fetch-package-stats');
@@ -87,7 +87,7 @@ const main = async ({
   argv,
   stream = process.stdout,
   noOra = false,
-  exec = shelljs.exec,
+  exec = childProcess.execFile,
   prompt = inquirer.prompt,
   defaultMaxSize = DEFAULT_MAX_SIZE,
   readPkg = () => _.get('pkg', readPkgUp.sync())
@@ -111,7 +111,8 @@ const main = async ({
   const pluralSuffix = _.size(packages) > 1 ? 's' : '';
 
   const performInstall = () => {
-    const res = exec(installCommand(argv));
+    const cmd = installCommand(argv).split();
+    const res = exec(cmd[0], cmd.slice(1));
     if (res.code !== 0) throw new Error(`npm install returned with status code ${res.code}`);
   };
   const predicate = getSizePredicate(argv, defaultMaxSize, currentPkg);
